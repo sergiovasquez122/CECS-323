@@ -86,3 +86,5 @@ having sum((PRICEEACH - BUYPRICE) * QUANTITYORDERED) > 60000
 order by profit desc
 
 select productName, productCode, sum(MSRP - BUYPRICE) as profitPerProduct from  Products group by productName, productCode
+
+select customerName, sum(QUANTITYORDERED * PRICEEACH) as totalOrders from Customers natural join Orders natural join ORDERDETAILS group by customerName having sum(QUANTITYORDERED * PRICEEACH) > 100000 order by sum(QUANTITYORDERED * PRICEEACH) desc 
