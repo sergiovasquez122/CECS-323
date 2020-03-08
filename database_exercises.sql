@@ -59,3 +59,5 @@ on Customers."STATE" = Offices."STATE"
 select max(amount) from Customers natural join Payments
 
 select avg(amount) from Customers natural join Payments
+
+select customerName, sum(amount) as total from Customers natural join Payments group by customerName
