@@ -1,3 +1,4 @@
+ 
 select * from ProductLines
 
 select * from Products
@@ -55,6 +56,10 @@ Customers."STATE" = Offices."STATE"
 
 select * from Customers inner join Offices 
 on Customers."STATE" = Offices."STATE"
+
+select customerName, orderDate, quantityOrdered, productLine, productName from ProductLines natural join Products natural join OrderDetails natural join Orders natural join Customers
+where year(orderDate) = 2015 and year(shippedDate) = 2015
+
 
 select max(amount) from Customers natural join Payments
 
