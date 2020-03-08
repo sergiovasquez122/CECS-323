@@ -81,3 +81,6 @@ select productLine, count(productName) as numberOfProducts from PRODUCTLINES nat
 
 select orderNumber, sum(priceEach * QUANTITYORDERED) as totalPrice from ORDERDETAILS group by orderNumber having sum(PRICEEACH * QUANTITYORDERED) > 60000
 
+select productName, productCode, sum((ORDERDETAILS.PRICEEACH - PRODUCTS.BUYPRICE) * ORDERDETAILS.QUANTITYORDERED)  as profit from PRODUCTS natural join ORDERDETAILS group by PRODUCTNAME, PRODUCTCODE 
+having sum((PRICEEACH - BUYPRICE) * QUANTITYORDERED) > 60000
+order by profit desc
