@@ -73,4 +73,6 @@ select officeCode, count(employeeNumber) as number_of_employees from Offices nat
 
 select customerName, sum(amount) as total from Customers natural join Payments group by customerName
 
+select status, count(status) as numberOfOrders from Orders group by status
+
 select productLine, count(productName) from PRODUCTLINES natural join PRODUCTS group by productLine
