@@ -60,6 +60,7 @@ on Customers."STATE" = Offices."STATE"
 select customerName, orderDate, quantityOrdered, productLine, productName from ProductLines natural join Products natural join OrderDetails natural join Orders natural join Customers
 where year(orderDate) = 2015 and year(shippedDate) = 2015
 
+select * from Products left outer join OrderDetails on PRODUCTS.PRODUCTCODE = ORDERDETAILS.PRODUCTCODE where quantityOrdered is null
 
 select max(amount) from Customers natural join Payments
 
