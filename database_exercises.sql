@@ -76,3 +76,5 @@ select customerName, sum(amount) as total from Customers natural join Payments g
 select status, count(status) as numberOfOrders from Orders group by status
 
 select productLine, count(productName) from PRODUCTLINES natural join PRODUCTS group by productLine
+
+select productLine, count(productName) as numberOfProducts from PRODUCTLINES natural join PRODUCTS group by productLine having count(productName) > 3
