@@ -53,3 +53,6 @@ select distinct productLine, productVendor from ProductLines natural join Produc
 select * from Customers Inner Join Offices on
 Customers."STATE" = Offices."STATE"
 
+select * from Customers inner join Employees on 
+Customers.SALESREPEMPLOYEENUMBER = Employees.EMPLOYEENUMBER inner join 
+Offices on Employees.OFFICECODE = Offices.OFFICECODE where Customers."STATE" = OFFICES."STATE"
