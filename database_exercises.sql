@@ -84,3 +84,5 @@ select orderNumber, sum(priceEach * QUANTITYORDERED) as totalPrice from ORDERDET
 select productName, productCode, sum((ORDERDETAILS.PRICEEACH - PRODUCTS.BUYPRICE) * ORDERDETAILS.QUANTITYORDERED)  as profit from PRODUCTS natural join ORDERDETAILS group by PRODUCTNAME, PRODUCTCODE 
 having sum((PRICEEACH - BUYPRICE) * QUANTITYORDERED) > 60000
 order by profit desc
+
+select productName, productCode, sum(MSRP - BUYPRICE) as profitPerProduct from  Products group by productName, productCode
