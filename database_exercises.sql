@@ -62,6 +62,9 @@ where year(orderDate) = 2015 and year(shippedDate) = 2015
 
 select * from Products left outer join OrderDetails on PRODUCTS.PRODUCTCODE = ORDERDETAILS.PRODUCTCODE where quantityOrdered is null
 
+select * from CUSTOMERS left outer join EMPLOYEES 
+on CUSTOMERS.SALESREPEMPLOYEENUMBER = EMPLOYEES.EMPLOYEENUMBER
+
 select max(amount) from Customers natural join Payments
 
 select avg(amount) from Customers natural join Payments
