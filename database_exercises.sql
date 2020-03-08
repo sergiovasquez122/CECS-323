@@ -78,3 +78,6 @@ select status, count(status) as numberOfOrders from Orders group by status
 select productLine, count(productName) from PRODUCTLINES natural join PRODUCTS group by productLine
 
 select productLine, count(productName) as numberOfProducts from PRODUCTLINES natural join PRODUCTS group by productLine having count(productName) > 3
+
+select orderNumber, sum(priceEach * QUANTITYORDERED) as totalPrice from ORDERDETAILS group by orderNumber having sum(PRICEEACH * QUANTITYORDERED) > 60000
+
