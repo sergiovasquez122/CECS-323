@@ -72,3 +72,5 @@ select avg(amount) from Customers natural join Payments
 select officeCode, count(employeeNumber) as number_of_employees from Offices natural join Employees group by officeCode
 
 select customerName, sum(amount) as total from Customers natural join Payments group by customerName
+
+select productLine, count(productName) from PRODUCTLINES natural join PRODUCTS group by productLine
