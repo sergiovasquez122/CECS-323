@@ -4,7 +4,7 @@ select * from PUBLISHERS
 
 select * from TITLES
 
-select * from ROYALTIES
+select * from ROYALTIESsales
 
 select * from AUTHORS where AU_LNAME like 'H%'
 
@@ -14,4 +14,4 @@ select * from TITLES where TITLE_ID in ('T01', 'T04', 'T07')
 
 select AU_FNAME, AU_LNAME, ADDRESS, CITY, "STATE" from AUTHORS order by CITY, "STATE"
 
-
+select * from TITLES where PRICE > 20
