@@ -17,3 +17,5 @@ select AU_FNAME, AU_LNAME, ADDRESS, CITY, "STATE" from AUTHORS order by CITY, "S
 select * from TITLES where PRICE > 20
 
 select * from TITLES where sales < 5000
+
+select TITLE_NAME from TITLES natural join PUBLISHERS where PUB_NAME = 'Core Dump Books'
