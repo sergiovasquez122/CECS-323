@@ -6,7 +6,7 @@ select PRODUCTCODE, PRODUCTNAME, sum(100 * (MSRP - BUYPRICE) / BUYPRICE) as prof
 select COUNTRY, count(CUSTOMERNUMBER) as numberOfCustomers from CUSTOMERS group by COUNTRY order by count(CUSTOMERNUMBER) desc
 
 select distinct ORDERNUMBER, ORDERDATE, SHIPPEDDATE from ORDERS natural join ORDERDETAILS
-where ORDERDATE between '05/16/2014' and '06/7/2014'
-and SHIPPEDDATE between '05/20/2014' and '07/31/2014' order by ORDERDATE 
+where ORDERDATE between '06/16/2014' and '07/7/2014'
+and SHIPPEDDATE between '06/20/2014' and '07/31/2014' order by ORDERDATE 
 
 select productName, productVendor from PRODUCTS where PRODUCTVENDOR like '%Gear%'
