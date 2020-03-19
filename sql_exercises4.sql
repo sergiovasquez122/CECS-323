@@ -1,0 +1,19 @@
+select distinct CUSTOMERNAME, PRODUCTNAME
+from CUSTOMERS natural join ORDERS
+natural join ORDERDETAILS natural join
+PRODUCTS where QUANTITYORDERED >= 6
+
+select PRODUCTCODE, PRODUCTNAME, sum(100 * (MSRP - BUYPRICE) / BUYPRICE) as profit
+from PRODUCTS group by PRODUCTCODE, PRODUCTNAME
+having sum(100 * (MSRP - BUYPRICE) / BUYPRICE) > 125
+
+select COUNTRY, count(CUSTOMERNUMBER) as customer_count from CUSTOMERS
+group by COUNTRY order by COUNTRY desc
+
+select distinct PRODUCTNAME, PRODUCTVENDOR from PRODUCTS
+where PRODUCTVENDOR like '%Gear%'
+
+select ORDERNUMBER, ORDERDATE, SHIPPEDDATE from ORDERS
+where ORDERDATE between '06/16/2014' and '07/07/2014'
+and SHIPPEDDATE between '06/20/2014' and '07/31/2014'
+order by SHIPPEDDATE
