@@ -208,4 +208,92 @@ on products.PROD_ID = orderitems.PROD_ID
 group by prod_name
 order by total_orders desc, prod_name;
 
+select * from VENDORS
+
+select * from products;
+
+select vendors.VEND_ID, count(PROD_ID) as total_orders from vendors left outer join 
+products on vendors.VEND_ID = products.VEND_ID
+group by vendors.VEND_ID order by total_orders desc;
+
+select cust_name, cust_contact, cust_email
+from customers
+where cust_state in ('IL', 'IN', 'MI');
+
+select cust_name, cust_contact, cust_email
+from customers where cust_name = 'Fun4All';
+
+select cust_name, cust_contact, cust_email
+from customers
+where cust_state in ('IL', 'IN', 'MI')
+union
+select cust_name, cust_contact, cust_email
+from customers
+where cust_name = 'Fun4All';
+
+insert into customers
+(cust_id, cust_contact,
+cust_email, cust_name,
+cust_address, cust_city,
+cust_state, cust_zip)
+values ('52',
+NULL,
+NULL,
+'Toy Land',
+'123 Any Street',
+'New York',
+'NY',
+'11111');
+
+insert into customers
+(cust_id, cust_contact,
+cust_email, cust_name,
+cust_address, cust_city,
+cust_state, cust_zip)
+values ('2916',
+NULL,
+NULL,
+'Toy Land',
+'123 Any Street', 
+'New York',
+'NY',
+'11111');
+
+/*nMake backup copies of your orders on orderitems tables */
+create table ordercopy as select * from orders
+create table orderitemcopy as select * from orderitems;
+
+update customers
+set cust_email = 'kim@thetoystore.com'
+where cust_id = '1000000005';
+
+select * from customers;
+
+update customers
+set cust_contact ='Sam Roberts',
+cust_email = 'sam@toyland.com'
+where cust_id = '1000000006';
+
+update customers
+set cust_email = null
+where cust_id = '1000000005';
+
+delete from customers
+where cust_id = '1000000006';
+
+select * from customers; 
+
+delete from customers
+where cust_id = '52';
+
+update customers
+set CUST_STATE = upper(CUST_STATE);
+
+select * from customers;
+
+select * from VENDORS;
+
+update vendors
+set vend_country = upper(vend_country);
+
 
