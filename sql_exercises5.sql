@@ -293,7 +293,94 @@ select * from customers;
 
 select * from VENDORS;
 
-update vendors
-set vend_country = upper(vend_country);
+select cust_name, cust_contact
+from customers natural join orders natural join orderitems
+where prod_id = 'RGAN01';
+
+create view ProductCustomers
+as select cust_name, cust_contact, prod_id
+from customers natural join orders
+natural join orderitems;
+
+select * from PRODUCTCUSTOMERS;
+
+select cust_name, cust_contact
+from productcustomers
+where prod_id = 'RGAN01';
+
+select trim(vend_name) || ' (' || trim(vend_country) || ') '
+as vend_title
+from vendors
+order by vend_name;
+
+create view vendorlocations as
+select trim(vend_name) || ' (' || trim(vend_country) || ') '
+as vend_title
+from VENDORS;
+
+select * from VENDORLOCATIONS;
+
+create view customeremaillist
+as select cust_id, cust_name, cust_email
+from customers
+where cust_email is not null;
+
+select * from CUSTOMEREMAILLIST;
+
+select prod_id,
+quantity,
+item_price,
+quantity * item_price as expanded_price
+from orderitems
+where order_num = 20008;
+
+create view orderitemsexpanded as
+select order_num,
+prod_id,
+quantity, item_price,
+quantity * item_price as expanded_price
+from orderitems;
+
+select *
+from ORDERITEMSEXPANDED
+where ORDER_NUM = 20008;
+
+create view customer_with_orders as 
+select * from CUSTOMERS natural join ORDERS;
+
+select * from CUSTOMER_WITH_ORDERS;
+
+
+create table vendor_copy(
+vend_id char(10) not null primary key,
+vend_name char(50) not null,
+vend_address char(50) ,
+vend_city char(50) ,
+vend_state char(5) ,
+vend_zip char(10) ,
+vend_country char(50) 
+)
+
+select * from VENDOR_COPY
+
+create table order_copy(
+order_num integer not null primary key,
+order_date integer not null,
+cust_id char(10) not null references customers(cust_id)
+);
+
+create table orderitemcopies
+(
+order_num integer not null,
+order_item integer not null,
+prod_id char(10) not null,
+quantity integer not null check (quantity > 0),
+item_price integer not null
+);
+
+select * from ORDERITEMCOPIES
+
+create index prod_name_ind
+on products(prod_name);
 
 
