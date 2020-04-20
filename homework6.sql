@@ -6,6 +6,13 @@ natural join orders where
 year(orderdate) = 2015;
 
 -- 38
+select CONTACTLASTNAME as lastname, CONTACTFIRSTNAME as firstname, CUSTOMERNAME
+from customers
+union
+select lastname, firstname, upper('employee') as customername from EMPLOYEES
+order by customername
+
+-- 39
 select LASTNAME, FIRSTNAME, EMPLOYEENUMBER
 from EMPLOYEES left outer join CUSTOMERS
 on EMPLOYEES.EMPLOYEENUMBER = CUSTOMERS.SALESREPEMPLOYEENUMBER
