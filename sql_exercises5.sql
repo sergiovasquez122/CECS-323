@@ -383,4 +383,41 @@ select * from ORDERITEMCOPIES
 create index prod_name_ind
 on products(prod_name);
 
+select cust_name, cust_contact, cust_email
+from customers
+where cust_state in ('IL', 'IN', 'MI');
+
+
+select cust_name, cust_contact, cust_email 
+from customers
+where cust_name = 'Fun4All';
+
+select cust_name, cust_contact, cust_email
+from customers
+where cust_state in ('IL', 'IN', 'MI')
+union
+select cust_name, cust_contact, cust_email
+from customers
+where cust_name = 'Fun4All';
+
+select cust_name, cust_contact, cust_email
+from customers
+where cust_state in ('IL', 'IN', 'MI')
+union
+select cust_name, cust_contact, cust_email
+from customers
+where cust_name = 'Fun4All'
+order by cust_name, cust_contact;
+
+select prod_id, quantity from
+ORDERITEMS where QUANTITY = 100
+union select prod_id, quantity
+from orderitems where PROD_ID = 'BNBG'
+order by PROD_ID;
+
+select prod_id, quantity
+from orderitems
+where quantity = 100
+or prod_id = 'BNBG'
+order by prod_id;
 
