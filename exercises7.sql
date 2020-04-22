@@ -146,3 +146,30 @@ title_authors on authors.au_id = title_authors.AU_ID
 inner join titles on 
 title_authors.TITLE_ID = titles.TITLE_ID
 group by au_lname, au_fname;
+
+select  state, 'Author' as source
+from    (
+        select  state
+        from    authors
+        except
+        select  state
+        from    publishers) as tmp
+union
+select  state, 'Publishers' as source
+from    (
+        select  state
+        from    publishers
+        except
+        select  state
+        from    authors) as tmp2
+union
+select  state, 'Both' as source
+from    (
+        select  state
+        from    authors 
+        intersect
+        select  state
+        from    publishers) as tmp3
+order by state;
+
+
