@@ -120,3 +120,14 @@ authors natural join title_authors
 natural join titles where sales = (
 select max(sales) from TITLES
 );
+
+select distinct au_lname, au_fname from
+authors except 
+select distinct au_lname, au_fname
+from authors inner join 
+title_authors on 
+authors.AU_ID = TITLE_AUTHORS.AU_ID
+inner join titles on
+TITLE_AUTHORS.TITLE_ID = TITLEs.TITLE_ID
+inner join PUBLISHERS on 
+titles.PUB_ID = publishers.PUB_ID;
