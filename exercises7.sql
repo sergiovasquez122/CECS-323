@@ -131,3 +131,18 @@ inner join titles on
 TITLE_AUTHORS.TITLE_ID = TITLEs.TITLE_ID
 inner join PUBLISHERS on 
 titles.PUB_ID = publishers.PUB_ID;
+
+select pub_name,  count(title_id) as number_of_books
+from publishers natural join 
+titles group by pub_name
+having count(title_id) > 2;
+
+select "STATE", count(au_id) as number_of_authors
+from authors group by "STATE";
+
+select AU_LNAME, au_fname, count(titles.title_id) as number_of_books
+from authors inner join 
+title_authors on authors.au_id = title_authors.AU_ID
+inner join titles on 
+title_authors.TITLE_ID = titles.TITLE_ID
+group by au_lname, au_fname;
