@@ -1,0 +1,190 @@
+DELETE FROM CITY;
+DELETE FROM STATES;
+DELETE FROM SEVERITY;
+DELETE FROM CHARGE;
+DELETE FROM CHARGETYPE;
+DELETE FROM INCIDENTTYPE;
+
+-- All data for the states table
+INSERT INTO STATES(STATE_NAME)
+VALUES
+('California'),
+('Georgia'),
+('Illinois'),
+('Texas'),
+('Colorado'),
+('New York'),
+('Washington'),
+('North Carolina'),
+('New Jersey'),
+('Florida');
+
+-- All data for the city table
+INSERT INTO CITY(CID, STATE_NAME, CITY_NAME)
+VALUES
+(1, 'California', 'Los Angeles'),
+(2, 'California', 'San Franciso'),
+(3, 'California', 'San Diego'),
+(4, 'California', 'Long Beach');
+
+INSERT INTO CHARGETYPE(CHARGETYPE)
+VALUES
+('Water'),
+('Pillows'),
+('Blankets');
+
+-- All data for incidents
+INSERT INTO INCIDENTTYPE(INCIDENT_TYPE) VALUES
+('Injury'),
+('Complaint'),
+('Praise');
+
+-- All date for SEVERITY TABLE
+INSERT INTO SEVERITY(SEVERITY_AMOUNT) VALUES
+(1),
+(2),
+(3),
+(4),
+(5);
+
+SELECT * FROM STATES;
+SELECT * FROM CITY;
+SELECT * FROM CHARGE;
+SELECT * FROM CHARGETYPE;
+SELECT * FROM INCIDENTTYPE;
+SELECT * FROM SEVERITY;
+
+-- The list of all airlines for a given airport
+select AIRLINE_NAME, CITY_NAME from 
+AIRPORT_AIRLINE inner join AIRLINE
+on AIRPORT_AIRLINE.AID = AIRLINE.AID;
+
+/** 
+    The list of all flights for a given airline. You must
+    be able to sort this list by starting
+    location, destination, longest flight or shortest flight.
+*/
+-- ordering by starting location
+select * from FLIGHT inner join 
+FLIGHT_SCHEDULE on 
+FLIGHT.FSID = FLIGHT_SCHEDULE.FSID
+inner join AIRPORT on 
+FLIGHT_SCHEDULE.ARRIVAL_AIRPORT = AIRPORT.AIRPORT_NAME
+and FLIGHT_SCHEDULE.DEPARTURE_AIRPORT = AIRPORT.AIRPORT_NAME
+inner join 
+order by DEPARTURE_AIRPORT;
+
+-- ordering by ending location
+select * from FLIGHT inner join 
+FLIGHT_SCHEDULE on 
+FLIGHT.FSID = FLIGHT_SCHEDULE.FSID
+inner join AIRPORT on 
+FLIGHT_SCHEDULE.ARRIVAL_AIRPORT = AIRPORT.AIRPORT_NAME
+and FLIGHT_SCHEDULE.DEPARTURE_AIRPORT = AIRPORT.AIRPORT_NAME
+order by ARRIVAL_AIRPORT;
+
+-- ordering by shortest flights
+select * from FLIGHT inner join 
+FLIGHT_SCHEDULE on 
+FLIGHT.FSID = FLIGHT_SCHEDULE.FSID
+inner join AIRPORT on 
+FLIGHT_SCHEDULE.ARRIVAL_AIRPORT = AIRPORT.AIRPORT_NAME
+and FLIGHT_SCHEDULE.DEPARTURE_AIRPORT = AIRPORT.AIRPORT_NAME
+order by  {fn TIMESTAMPDIFF(SQL_TSI_MINUTE, FLIGHT.FINAL_ARRIVAL_TIME, FLIGHT.FLIGHT_DEPARTURE_TIME)}
+
+-- ordering by longest flights
+select * from FLIGHT inner join 
+FLIGHT_SCHEDULE on 
+FLIGHT.FSID = FLIGHT_SCHEDULE.FSID
+inner join AIRPORT on 
+FLIGHT_SCHEDULE.ARRIVAL_AIRPORT = AIRPORT.AIRPORT_NAME
+and FLIGHT_SCHEDULE.DEPARTURE_AIRPORT = AIRPORT.AIRPORT_NAME
+order by  {fn TIMESTAMPDIFF(SQL_TSI_MINUTE, FLIGHT.FINAL_ARRIVAL_TIME, FLIGHT.FLIGHT_DEPARTURE_TIME)} desc;
+
+/* Flights that charge for extras */
+select * from CHARGE inner join 
+CHARGED_FLIGHT on
+CHARGE.FSID = CHARGED_FLIGHT.FSID
+inner join FLIGHT_SCHEDULE on 
+CHARGED_FLIGHT.FSID = FLIGHT_SCHEDULE.FSID
+inner join FLIGHT on 
+FLIGHT_SCHEDULE.FSID = FLIGHT.FSID;
+
+/** The crew roster for each flight for each airline */
+
+/** Mangement reports of mily information, arriving flights per city, departing flights per city, list of airlines in each service category, crews that fly multiple flights in a single day  */
+-- Crew that fly multiple flights in a single day
+select FLIGHT.FLIGHT_CREW, FLIGHT.FLIGHT_DATE, count(FLIGHT.FLIGHT_DATE) 
+as number_of_flights_in_single_day
+from FLIGHT having count(FLIGHT.FLIGHT_DATE) > 1;
+-- List of airlines for each service category
+select AIRLINE_NAME, FLIGHT_TYPE from AIRLINE
+order by FLIGHT_TYPE;
+
+/** The trips that are avaiable if you do make one stop over */
+
+/** A list of all incident reports by flight */
+select INCIDENT_TYPE, FLIGHT_SCHEDULE.*  from INCIDENT_REPORT 
+inner join FLIGHT on 
+INCIDENT_REPORT.FSID = FLIGHT.FSID
+inner join FLIGHT_SCHEDULE on 
+FLIGHT_SCHEDULE.FSID = FLIGHT.FSID;
+
+/** Flights that are scheduled to depart in three days */
+select * from FLIGHT_SCHEDULE
+where {fn TIMESTAMPDIFF(SQL_TSI_DAY, FLIGHT_SCHEDULE.DEPARTURE_TIME, CURRENT_TIME) } = 3;
+/** All flights that arrived in the busiest airport in the last week */
+
+/** Flights that departed more than 30 minutes late */
+select * from FLIGHT
+inner join FLIGHT_SCHEDULE
+on FLIGHT.FSID = FLIGHT_SCHEDULE.FSID inner join AIRPORT on
+where {fn TIMESTAMPDIFF(SQL_TSI_MINUTE, FLIGHT.FLIGHT_DEPARTURE_TIME, FLIGHT_SCHEDULE.DEPARTURE_TIME)} > 30;
+
+/** Do a query to see the count of airlines a city has to show that
+    no city headquarters more than 10 airlines */
+select city_name, count(aid) as airlines_in_city from CITY natural join AIRLINE
+group by city_name order by city_name, airlines_in_city desc;
+
+/** Do a query to ensure that any pilot over 65 is without a crew (retired) */
+SELECT FIRST_NAME, LAST_NAME, EMAIL, DOB
+from CREW_MEMBER inner join PILOT
+on CREW_MEMBER.CMID = PILOT.CMID
+left outer join FLIGHT_CREW on
+PILOT.FLIGHT_CREW_NAME = FLIGHT_CREW.FLIGHT_CREW_NAME
+where PILOT.FLIGHT_CREW_NAME is null;
+
+/** Do a query to ensure that only pilots with 10,000 of experience
+    are doing international flights */
+select FIRST_NAME, LAST_NAME, EMAIL, HOUROFEXPERIENCE from CREW_MEMBER
+inner join PILOT on 
+CREW_MEMBER.CMID = PILOT.CMID
+inner join FLIGHT_CREW on
+PILOT.FLIGHT_CREW_NAME = FLIGHT_CREW.FLIGHT_CREW_NAME
+inner join FLIGHT on 
+FLIGHT_CREW.FLIGHT_CREW_NAME  = FLIGHT.FLIGHT_CREW_NAME
+inner join FLIGHT_SCHEDULE on 
+FLIGHT.FSID = FLIGHT_SCHEDULE.FSID
+inner join INTERNATIONAL_FLIGHT
+on INTERNATIONAL_FLIGHT.FSID
+ = FLIGHT_SCHEDULE.FSID;
+
+/** Do a query to show that a crewmember works for only one airline */
+select FIRST_NAME, LAST_NAME, EMAIL, AIRLINE_NAME, CITY_NAME, STATE_NAME
+from CREW_MEMBER inner join AIRLINE
+on CREW_MEMBER.AID = AIRLINE.AID) as tmp
+ 
+/** List all planes that are within 5 years of being retired  */
+SELECT * FROM AIRPLANE where {fn TIMESTAMPDIFF(SQL_TSI_YEAR, CURRENT_DATE, AIRPLANE.DATE_MANUFACTURED)} >= 25;
+
+-- find the airlines that have retired pilots and display the count of retired pilots for those that do
+select AIRLINE_NAME, STATE_NAME, CITY_NAME, count(*) as number_of_pilots from PILOT
+inner join CREW_MEMBER on
+PILOT.CMID = CREW_MEMBER.CMID
+inner join AIRLINE
+on CREW_MEMBER.AID = AIRLINE.AID
+inner join CITY on 
+AIRLINE.CID = CITY.CID
+where {fn TIMESTAMPDIFF(SQL_TSI_YEAR, CURRENT_DATE, CREW_MEMBER.DOB)} >= 65
+group by AIRLINE_NAME, STATE_NAME, CITY_NAME
+having count(*) >= 1;
