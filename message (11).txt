@@ -1,0 +1,645 @@
+DROP TABLE states;
+DROP TABLE city;
+DROP TABLE airport;
+DROP TABLE FlightType;
+DROP TABLE airline;
+
+-- State Table
+CREATE TABLE states (
+    state_name VARCHAR(20) NOT NULL,
+    CONSTRAINT state_pk PRIMARY KEY(state_name)
+);
+
+-- City Table 
+CREATE TABLE city(
+    state_name VARCHAR(20) NOT NULL,
+    city_name VARCHAR(20) NOT NULL,
+    cid INTEGER NOT NULL,
+    CONSTRAINT city_pk PRIMARY KEY(cid),
+    CONSTRAINT state_city_fk FOREIGN KEY(state_name)
+    REFERENCES states(state_name)
+);
+
+-- Airport Table
+CREATE TABLE airport(
+    airport_name VARCHAR(60) NOT NULL,
+    FAA_approved_abbreviation VARCHAR(20) NOT NULL,
+    cid INTEGER NOT NULL,
+    CONSTRAINT airport_pk PRIMARY KEY(airport_name),
+    CONSTRAINT airport_city_fk FOREIGN KEY(cid)
+    REFERENCES city(cid)
+);
+
+-- Flight Type
+CREATE TABLE FlightType(
+    flight_type VARCHAR(20) not null,
+    CONSTRAINT flight_type_pk PRIMARY KEY(flight_type)
+);
+
+-- Airline Table
+CREATE TABLE airline(
+    aid INTEGER NOT NULL,
+    airline_name VARCHAR(50) NOT NULL,
+    flight_type VARCHAR(20) NOT NULL,
+    cid INTEGER NOT NULL,
+    CONSTRAINT airline_pk PRIMARY KEY(aid),
+    CONSTRAINT airline_city_fk FOREIGN KEY(cid)
+    REFERENCES city(cid),
+    CONSTRAINT airline_flight_type_fk FOREIGN KEY(flight_type)
+    REFERENCES FlightType(flight_type)
+);
+
+-- Airport-airline table
+CREATE TABLE airport_airline
+(
+    airport_name VARCHAR(60) NOT NULL,
+    aid INTEGER NOT NULL,
+    CONSTRAINT airport_airline_pk PRIMARY KEY(airport_name, aid),
+    CONSTRAINT airport_airline_airport_fk FOREIGN KEY(airport_name)
+    REFERENCES airport(airport_name),
+    CONSTRAINT airport_airline_airline_fk FOREIGN KEY(aid)
+    REFERENCES airline(aid)
+);
+
+-- Airplane Table
+CREATE TABLE airplane(
+    manufacturer VARCHAR(20) NOT NULL,
+    model_number INTEGER NOT NULL,
+    passenger_maximum INTEGER NOT NULL,
+    tail_number varchar(20) NOT NULL,
+    plane_name VARCHAR(20) NOT NULL,
+    date_manufactured DATE NOT NULL,
+    aid INTEGER NOT NULL,
+    CONSTRAINT airplane_pk PRIMARY KEY(tail_number),
+    CONSTRAINT airplane_airline_fk FOREIGN KEY(aid)
+    REFERENCES airline(aid)
+);
+
+-- Flight Schedule table
+CREATE TABLE flight_schedule(
+    fsid INTEGER NOT NULL,
+    arrival_time time NOT NULL,
+    departure_time time NOT NULL,
+    arrival_airport VARCHAR(60) NOT NULL,
+    departure_airport VARCHAR(60) NOT NULL,
+    flight_number VARCHAR(20) NOT NULL,
+    CONSTRAINT flight_schedule_pk PRIMARY KEY(fsid),
+    CONSTRAINT flight_schedule_fk_arrival FOREIGN KEY(arrival_airport)
+    REFERENCES airport(airport_name),
+    CONSTRAINT flight_schedule_fk_departure FOREIGN KEY(departure_airport)
+    REFERENCES airport(airport_name)
+);
+
+-- charged flight table
+CREATE TABLE charged_flight(
+    fsid INTEGER NOT NULL,
+    CONSTRAINT charged_flight_pk PRIMARY KEY(fsid),
+    CONSTRAINT charge_flight_flight_schedule_fk FOREIGN KEY(fsid)
+    REFERENCES flight_schedule(fsid)
+);
+
+-- international flight
+CREATE TABLE international_flight(
+    fsid INTEGER NOT NULL,
+    CONSTRAINT charge_flight_pk PRIMARY KEY(fsid),
+    CONSTRAINT international_flight_flight_schedule_fk FOREIGN KEY(fsid)
+    REFERENCES flight_schedule(fsid)
+);
+
+
+-- chargeType
+CREATE TABLE chargeType(
+    chargeType VARCHAR(20) NOT NULL,
+    CONSTRAINT chargeType_pk primary key(chargeType)
+); 
+
+-- CHARGE TABLE
+CREATE TABLE charge(
+    fsid INTEGER NOT NULL,
+    charge_type VARCHAR(20) NOT NULL,
+    charge_amount VARCHAR(20) NOT NULL,
+    CONSTRAINT charge_pk PRIMARY KEY(fsid, charge_type),
+    constraint charge_charge_type_fk foreign key(charge_type)
+    references chargeType(chargeType),
+    CONSTRAINT charge_charge_flight_fk FOREIGN KEY(fsid)
+    REFERENCES charged_flight(fsid)
+);
+
+-- Flight Crew
+CREATE TABLE flight_crew
+(
+    flight_crew_name VARCHAR(20) NOT NULL,
+    CONSTRAINT flight_crew_pk PRIMARY KEY(flight_crew_name)
+);
+
+-- Flight table
+CREATE TABLE flight(
+    flight_departure_time TIME NOT NULL,
+    final_arrival_time TIME NOT NULL,
+    flight_crew_name VARCHAR(20) NOT NULL,
+    fsid INTEGER NOT NULL,
+    tail_number VARCHAR(20) NOT NULL, 
+    flight_date DATE NOT NULL,
+    CONSTRAINT flight_pk PRIMARY KEY(fsid),
+    CONSTRAINT flight_crew_fk FOREIGN KEY(flight_crew_name)
+    REFERENCES flight_crew(flight_crew_name),
+    CONSTRAINT flight_airplane_fk FOREIGN KEY(tail_number)
+    REFERENCES airplane(tail_number),
+    CONSTRAINT flight_schedule_flight_fk FOREIGN KEY(fsid)  
+    REFERENCES flight_schedule(fsid)
+);
+
+-- Crew Member
+CREATE TABLE crew_member(
+    first_name VARCHAR(20) NOT NULL,
+    last_name VARCHAR(20) NOT NULL,
+    email VARCHAR(20) NOT NULL,
+    aid INTEGER NOT NULL,
+    dob DATE NOT NULL,
+    FAA_number VARCHAR(20) NOT NULL,
+    cmid INTEGER NOT NULL,
+    CONSTRAINT crew_member_pk PRIMARY KEY(cmid),
+    CONSTRAINT crew_member_airline_fk FOREIGN KEY(aid)
+    REFERENCES airline(aid)
+);
+
+-- Pilot 
+CREATE TABLE pilot(
+    CMID INTEGER NOT NULL,
+    hourOfExperience INTEGER NOT NULL,
+    flight_crew_name VARCHAR(20),
+    CONSTRAINT pilot_pk PRIMARY KEY(CMID),
+    CONSTRAINT pilot_fk FOREIGN KEY(CMID)
+    REFERENCES crew_member(cmid),
+    CONSTRAINT pilot_flight_crew FOREIGN KEY(flight_crew_name)
+    REFERENCES flight_crew(flight_crew_name)
+);
+
+-- Flight Attendant
+CREATE TABLE flight_attendant(
+    cmid INTEGER NOT NULL,
+    flight_crew_name VARCHAR(20),
+    CONSTRAINT flight_attendant_pk PRIMARY KEY(cmid),
+    CONSTRAINT flight_attendant_fk FOREIGN KEY(cmid)
+    REFERENCES crew_member(cmid),
+    CONSTRAINT flight_attendant_flight_crew FOREIGN KEY(flight_crew_name)
+    REFERENCES flight_crew(flight_crew_name)
+);
+
+-- Navigator
+CREATE TABLE navigator(
+    cmid INTEGER NOT NULL,
+    flight_crew_name VARCHAR(20) ,
+    CONSTRAINT navigator_pk PRIMARY KEY(cmid),
+    CONSTRAINT navigator_fk FOREIGN KEY(cmid)
+    REFERENCES crew_member(cmid),
+    CONSTRAINT navigator_flight_crew_fk FOREIGN KEY(flight_crew_name)
+    REFERENCES flight_crew(flight_crew_name)
+);
+
+-- Co-pilot
+CREATE TABLE co_pilot(
+    cmid INTEGER NOT NULL,
+    flight_crew_name VARCHAR(20),
+    CONSTRAINT co_pilot_pk PRIMARY KEY(cmid),
+    CONSTRAINT co_pilot_fk FOREIGN KEY(cmid)
+    REFERENCES crew_member(cmid),
+    CONSTRAINT co_pilot_flight_crew_fk FOREIGN KEY(flight_crew_name)
+    REFERENCES flight_crew(flight_crew_name)
+);
+
+-- Severity Table
+CREATE TABLE severity(
+    severity_amount INTEGER NOT NULL,
+    CONSTRAINT severity_pk PRIMARY KEY(severity_amount)
+);
+
+-- Incident Type
+CREATE TABLE IncidentType(
+    incident_type VARCHAR(20) NOT NULL,
+    CONSTRAINT incident_type_pk PRIMARY KEY(incident_type)
+);
+
+-- Incident table
+CREATE TABLE incident_report(
+    incident_type VARCHAR(20) NOT NULL,
+    severity_amount INTEGER NOT NULL,
+    reported INTEGER NOT NULL,
+    involved INTEGER NOT NULL, 
+    fsid INTEGER NOT NULL,
+    CONSTRAINT incident_report_pk PRIMARY KEY (reported, involved, fsid, incident_type, severity_amount),
+    CONSTRAINT incident_report_crew_member_reported_fk FOREIGN KEY(reported)
+    REFERENCES crew_member(cmid),
+    CONSTRAINT incident_report_crew_member_involved_fk FOREIGN KEY(involved)
+    REFERENCES crew_member(cmid),
+    CONSTRAINT incident_report_flight_fk FOREIGN KEY(fsid)
+    REFERENCES flight(fsid),
+    CONSTRAINT incident_report_incident_type_fk FOREIGN KEY(incident_type)
+    REFERENCES IncidentType(incident_type),
+    CONSTRAINT incident_report_serverity_fk FOREIGN KEY(severity_amount)
+    REFERENCES severity(severity_amount)
+);
+
+--States in the United States
+INSERT INTO states(state_name) VALUES ('Alabama'), ('Alaska'), ('Arizona'), ('Arkansas'), ('California'), ('Colorado'), ('Connecticut'), ('Delaware'), ('Florida'), ('Georgia'),
+                               ('Hawaii'), ('Idaho'), ('Illinois'), ('Indiana'), ('Iowa'), ('Kansas'), ('Kentucky'), ('Louisiana'), ('Maine'), ('Maryland'),
+                               ('Massachusetts'), ('Michigan'), ('Minnesota'), ('Mississippi'), ('Missouri'), ('Montana'), ('Nebraska'), ('Nevada'), ('New Hampshire'), ('New Jersey'),
+                               ('New Mexico'), ('New York'), ('North Carolina'), ('North Dakota'), ('Ohio'), ('Oklahoma'), ('Oregon'), ('Pennsylvania'), ('Rhode Island'), ('South Carolina'),
+                               ('South Dakota'), ('Tennesse'), ('Texas'), ('Utah'), ('Vermont'), ('Virginia'), ('Washington'), ('West Virginia'), ('Wisconsin'), ('Wyoming');
+
+--International States
+INSERT INTO states(state_name) VALUES ('Beijing'), ('Tokyo'), ('Dubai'), ('London'), ('Shanghai'), ('Île-de-France'), ('Guangdong'), ('North Holland'), ('West Sussex');
+
+--Cities in the United States
+INSERT INTO city(state_name, city_name, cid) VALUES ('Georgia', 'Atlanta', 1), ('California', 'Los Angeles', 2), ('Illinois', 'Chicago', 3), ('Texas', 'Dallas', 4), ('Colorado', 'Denver', 5),
+                           ('New York', 'New York', 6), ('California', 'San Francisco', 7), ('Washington', 'Seattle', 8), ('Nevada', 'Las Vegas', 9), ('Florida', 'Orlando', 10),
+                           ('New Jersey', 'Newark', 11), ('North Carolina', 'Charlotte', 12), ('Arizona', 'Phoenix', 13), ('Texas', 'Houston', 14), ('Florida', 'Miami', 15),
+                           ('Massachusetts', 'Boston', 16), ('Minnesota', 'Minneapolis', 17), ('Florida', 'Fort Lauderdale', 18), ('Michigan', 'Detroit', 19), ('Pennsylvania', 'Philadelphia', 20),
+                           ('Maryland', 'Baltimore', 21), ('Utah', 'Salt Lake City', 22), ('California', 'San Diego', 23), ('Virginia', 'Washington D.C', 24), ('Florida', 'Tampa', 25),
+                           ('Oregon', 'Portland', 26), ('Hawaii', 'Honolulu', 27), ('Beijing', 'Chaoyang-Shunyi', 28), ('Tokyo', 'Ōta', 29), ('Dubai', 'Garhoud', 30), ('London', 'Hillingdon', 31), ('Shanghai', 'Pudong', 32), 
+                           ('Île-de-France', 'Roissy-en-France', 33), ('Guangdong', 'Guangzhou', 34), ('North Holland', 'Haarlemmermeer', 35), ('Tokyo', 'Minato', 36), ('West Sussex', 'Crawley', 37), 
+                           ('Texas', 'Fort Worth', 38), ('New York', 'Long Island City', 39), ('Florida', 'Miramar', 40);
+
+--Airports
+INSERT INTO airport(airport_name, FAA_approved_abbreviation, cid) VALUES ('Hartsfield-Jackson Atlanta International Airport', 'ATL', 1), ('Los Angeles International Airport', 'LAX', 2), ('O''Hare International Airport', 'ORD', 3),
+                    ('Dallas/Fort Worth International Airport', 'DFW', 4), ('Denver International Airport', 'DEN', 5), ('John F. Kennedy International Airport', 'JFK', 6), ('San Francisco International Airport', 'SFO', 7),
+                    ('Seattle–Tacoma International Airport', 'SEA', 8), ('McCarran International Airport', 'LAS', 9), ('Orlando International Airport', 'MCO', 10), ('Newark Liberty International Airport', 'EWR', 11),
+                    ('Charlotte Douglas International Airport', 'CLT', 12), ('Phoenix Sky Harbor International Airport', 'PHX', 13), ('George Bush Intercontinental Airport', 'IAH', 14), ('Miami International Airport', 'MIA', 15),
+                    ('General Edward Lawrence Logan International Airport', 'BOS', 16), ('Minneapolis–Saint Paul International Airport', 'MSP', 17), ('Fort Lauderdale–Hollywood International Airport', 'FLL', 18), ('Detroit Metropolitan Airport', 'DTW', 19),
+                    ('Philadelphia International Airport', 'PHL', 20), ('LaGuardia Airport', 'LGA', 6), ('Baltimore–Washington International Thurgood Marshall Airport', 'BWI', 21), ('Salt Lake City International Airport', 'SLC', 22),
+                    ('San Diego International Airport', 'SAN', 23), ('Washington Dulles International Airport', 'IAD', 24), ('Ronald Reagan Washington National Airport', 'DCA', 24), ('Chicago Midway International Airport', 'MDW', 3),
+                    ('Tampa International Airport', 'TPA', 25), ('Portland International Airport', 'PDX', 26), ('Daniel K. Inouye International Airport', 'HNL', 27), ('Beijing Capital International Airport', 'PEK', 28), ('Tokyo Haneda Airport', 'HND', 29),
+                    ('Dubai International Airport', 'DXB', 30), ('London Heathrow Airport', 'LHR', 31), ('Shanghai Pudong International Airport', 'PVG', 32), ('Charles de Gaulle Airport', 'CDG', 33),
+                    ('Guangzhou Baiyun International Airport', 'CAN', 34), ('Amsterdam Airport Schiphol', 'AMS', 35);
+
+-- Insert all possible flight types
+INSERT INTO FlightType(flight_type) VALUES ('International'), ('Domestic'), ('Local');
+
+INSERT INTO airline(aid, airline_name, flight_type, cid) VALUES (1, 'All Nippon Airways', 'International', 36), (2, 'Virgin Atlantic Airways', 'International', 37), (3, 'Emirates', 'International', 30), 
+                    (4, 'American Airlines', 'Domestic', 28), (5, 'Delta Air Lines', 'Domestic', 1), (6, 'Southwest Airlines', 'Domestic', 4), (7, 'JetBlue Airways', 'Local', 29), (8, 'Spirit Airlines', 'Local', 30), 
+                    (9, 'United Airlines', 'Local', 3);
+
+INSERT INTO airport_airline(airport_name, aid) VALUES ('Tokyo Haneda Airport', 1), ('Dubai International Airport', 3), ('Hartsfield-Jackson Atlanta International Airport', 5),
+                    ('Los Angeles International Airport', 7), ('O''Hare International Airport', 9),
+                    ('Los Angeles International Airport', 900),
+                    ('Tokyo Haneda Airport', 900),
+                    ('Los Angeles International Airport', 100),
+                    ('San Diego International Airport', 100);
+
+INSERT INTO airplane(manufacturer, model_number, passenger_maximum, tail_number, plane_name, date_manufactured, aid) VALUES ('Airbus Corp Jets', 801, 20, 'A8F', 'The Unavoidable', '03/20/2019', 3), 
+                                                                                ('Boeing Business Jets', 100, 20, 'C19', 'No''Rona', '05/09/1997', 6),
+                                                                                ('Textron Aviation', 304, 80, 'NBC', 'Unit', '01/01/1971', 8), 
+                                                                                ('Aerosup Inc.', 214, 65, 'L3G', 'Heartburn', '02/14/2012', 2), 
+                                                                                ('AMC MRO', 420, 42, '42O', 'Mary Jane', '04/20/1975', 4);
+INSERT INTO flight_schedule(fsid, arrival_time, departure_time, arrival_airport, departure_airport, flight_number) VALUES
+            (1000, '18:00', '06:00', 'Tokyo Haneda Airport', 'Los Angeles International Airport', 'A00'), 
+            (1001, '11:00', '07:00', 'O''Hare International Airport', 'Los Angeles International Airport', '8AF'), 
+            (1002, '08:30', '04:00', 'Hartsfield-Jackson Atlanta International Airport', 'Los Angeles International Airport', 'BN2'), 
+            (1003, '14:00', '13:00', 'San Diego International Airport', 'Los Angeles International Airport', 'KL3'), 
+            (1004, '10:00', '08:00', 'Tokyo Haneda Airport', 'Amsterdam Airport Schiphol', 'TA7'), 
+            (1005, '11:00', '06:00', 'Washington Dulles International Airport', 'Seattle–Tacoma International Airport', 'SW4'), 
+            (1006, '12:00', '10:00', 'Dubai International Airport', 'San Diego International Airport', 'GM6'), 
+            (1007, '01:00', '07:00', 'Philadelphia International Airport', 'Portland International Airport', 'LH1'), 
+            (1008, '11:00', '09:00', 'Denver International Airport', 'Dallas/Fort Worth International Airport', 'A00'), 
+            (1009, '03:00', '10:30', 'Salt Lake City International Airport', 'Baltimore–Washington International Thurgood Marshall Airport', 'BN2');
+INSERT INTO CHARGETYPE(CHARGETYPE)
+VALUES
+('Water'),
+('Pillows'),
+('Blankets');
+
+-- All data for incidents
+INSERT INTO INCIDENTTYPE(INCIDENT_TYPE) VALUES
+('Injury'),
+('Complaint'),
+('Praise');
+
+-- All date for SEVERITY TABLE
+INSERT INTO SEVERITY(SEVERITY_AMOUNT) VALUES
+(1),
+(2),
+(3),
+(4),
+(5);
+SELECT * FROM states;
+SELECT * FROM city;
+SELECT * FROM airport;
+SELECT * FROM FlightType;
+SELECT * FROM airline;
+SELECT * FROM airport_airline;
+SELECT * FROM airplane;
+SELECT * FROM flight_schedule;
+
+INSERT INTO AIRLINE(AID, AIRLINE_NAME, CID, FLIGHT_TYPE)
+VALUES
+(100, 'Hollywood_Airlines', 2, 'Local'),
+(200, 'Socal_Airlines', 2, 'Local'),
+(300, 'Sunny_Cali_Airlines', 2, 'Local'),
+(400, 'CheapTickets', 2, 'Domestic'),
+(500, 'California_Airlines', 2, 'Domestic'),
+(600, 'Compton_Airlines', 2, 'Local'),
+(700, 'Delta_Airlines', 2, 'Domestic'),
+(800, 'Psi_Airlines', 2, 'International'),
+(900, 'Gamma_Airlines', 2, 'International'),
+(1000, 'Theta_Airlines', 2, 'International');
+
+SELECT * FROM AIRLINE;
+
+-- INSERTING CREW MEMBERS who happened to be retired pilots
+INSERT INTO CREW_MEMBER(FIRST_NAME, LAST_NAME, EMAIL, AID, DOB, FAA_NUMBER, CMID)
+VALUES
+('Ryan', 'Hiroko', 'ryan@socal.com', 200, '08/23/1946', '1', 100),
+('Pascal', 'Vasquez', 'pvasq@socal.com', 200, '09/25/1945', '2', 200),
+('Jeremey', 'Howard', 'jhow@gamma.com', 1000,'10/10/1950', '3', 300);
+
+SELECT * FROM CREW_MEMBER;
+
+-- INSERTING The CREW MEMBERS so that they are pilots
+INSERT INTO PILOT(FLIGHT_CREW_NAME, CMID, HOUROFEXPERIENCE)
+VALUES
+(null, 100, 7500),
+(null, 200, 5000),
+(null, 300, 5500);
+
+-- inserting into airplane retired planes
+INSERT INTO AIRPLANE(MANUFACTURER, MODEL_NUMBER, PASSENGER_MAXIMUM, TAIL_NUMBER, PLANE_NAME, DATE_MANUFACTURED, AID)
+VALUES  ('Boeing', 600, 500, '100', 'Blue jet', '08/23/1944', 200),
+        ('Raytheon', 744, 600, '200', 'The Beast', '07/23/1932', 1000);
+
+-- How many retired pilots per airline
+select AIRLINE_NAME, STATE_NAME, CITY_NAME, count(*) as number_of_pilots
+from PILOT
+inner join CREW_MEMBER on
+PILOT.CMID = CREW_MEMBER.CMID
+inner join AIRLINE
+on CREW_MEMBER.AID = AIRLINE.AID
+inner join CITY on 
+AIRLINE.CID = CITY.CID
+where -{fn TIMESTAMPDIFF(SQL_TSI_YEAR, CURRENT_TIME, CREW_MEMBER.DOB)} > 65
+group by AIRLINE_NAME, STATE_NAME, CITY_NAME
+having count(*) >= 1;
+
+-- Crew and the airlines that they work for
+select FIRST_NAME, LAST_NAME, EMAIL, AIRLINE_NAME, CITY_NAME, STATE_NAME
+from CREW_MEMBER inner join AIRLINE
+on CREW_MEMBER.AID = AIRLINE.AID
+inner join CITY on
+CITY.CID = AIRLINE.CID
+order by AIRLINE_NAME;
+
+/** Do a query to ensure that any pilot over 65 is without a crew (retired) */
+SELECT FIRST_NAME, LAST_NAME, DOB, 'Retired Pilot' as occupation
+from CREW_MEMBER inner join PILOT
+on CREW_MEMBER.CMID = PILOT.CMID
+left outer join FLIGHT_CREW on
+PILOT.FLIGHT_CREW_NAME = FLIGHT_CREW.FLIGHT_CREW_NAME
+where PILOT.FLIGHT_CREW_NAME is null;
+
+/** Do a query to see the count of airlines a city has to show that
+    no city headquarters more than 10 airlines */
+select city_name, count(aid) as airlines_in_city from CITY natural join AIRLINE
+group by city_name order by airlines_in_city desc;
+
+-- List of airlines for each service category
+select AIRLINE_NAME, FLIGHT_TYPE from AIRLINE
+order by FLIGHT_TYPE;
+
+-- The list of all airlines for a given airport
+SELECT AIRPORT_NAME, FAA_APPROVED_ABBREVIATION, AIRLINE_NAME, FLIGHT_TYPE from AIRPORT
+natural join AIRPORT_AIRLINE
+natural join AIRLINE
+where AIRPORT_NAME = 'Dubai International Airport';
+
+-- making crew that does international flights
+INSERT INTO FLIGHT_CREW(FLIGHT_CREW_NAME) VALUES ('International Flyers');
+
+INSERT INTO CREW_MEMBER(FIRST_NAME, LAST_NAME, EMAIL, AID, DOB, FAA_NUMBER, CMID)
+VALUES ('Manny', 'Cortez', 'manc@gamma.com', 900, '02/23/1992', '1000', 1000),
+       ('Hector', 'Rodriguez', 'Hec@gamma.com', 900, '02/24/1993', '1001', 1001),
+       ('Pablo', 'Picasso', 'ppac@gamma.com', 900, '03/03/1993', '1002', 1002),
+       ('Peter', 'Parker', 'ppark@gamma.com', 900, '04/04/1994', '1003', 1003),
+       ('Mary', 'Jane', 'mjay@gamma.com', 900, '05/05/1995', '1004', 1004);
+
+INSERT INTO INCIDENT_REPORT(INCIDENT_TYPE, SEVERITY_AMOUNT, REPORTED, INVOLVED, FSID)
+VALUES ('Praise', 5, 1000, 1001, 100001),
+('Praise', 3, 1001, 1000, 100002);
+
+INSERT INTO PILOT(FLIGHT_CREW_NAME, HOUROFEXPERIENCE, CMID) 
+VALUES
+('International Flyers', 15000, 1000);
+
+INSERT INTO CO_PILOT(FLIGHT_CREW_NAME, CMID)
+VALUES
+('International Flyers', 1001);
+
+INSERT INTO NAVIGATOR(FLIGHT_CREW_NAME, CMID)
+VALUES
+('International Flyers', 1002);
+
+INSERT INTO FLIGHT_ATTENDANT(FLIGHT_CREW_NAME, CMID)
+VALUES
+('International Flyers', 1003);
+
+INSERT INTO FLIGHT_ATTENDANT(FLIGHT_CREW_NAME, CMID)
+VALUES
+('International Flyers', 1004);
+
+INSERT INTO AIRPORT_AIRLINE(AIRPORT_NAME, AID) 
+VALUES
+('Los Angeles International Airport', 900),
+('Shanghai Pudong International Airport', 900);
+
+INSERT INTO FLIGHT_SCHEDULE(FSID, ARRIVAL_TIME, DEPARTURE_TIME, ARRIVAL_AIRPORT, DEPARTURE_AIRPORT, FLIGHT_NUMBER)
+            VALUES (100001, '14:00', '10:00', 'Los Angeles International Airport', 'Shanghai Pudong International Airport', '1000');
+            VALUES (100002, '22:00', '15:00', 'Shanghai Pudong International Airport', 'Los Angeles International Airport', '1001');
+
+INSERT INTO AIRPLANE(MANUFACTURER, MODEL_NUMBER, PASSENGER_MAXIMUM, TAIL_NUMBER, PLANE_NAME, DATE_MANUFACTURED, AID) 
+VALUES
+('Raytheon', 325, 500, '10001', 'The flyer', '08/23/1996', 900);
+
+INSERT INTO FLIGHT
+(FINAL_ARRIVAL_TIME, FLIGHT_DEPARTURE_TIME, FLIGHT_CREW_NAME, FSID, TAIL_NUMBER, FLIGHT_DATE)
+VALUES
+('14:00', '10:00', 'International Flyers', 100001, '10001', '08/23/1996'),
+('22:00', '15:00', 'International Flyers', 100002, '10001', '08/23/1996');
+
+select * from AIRPORT;
+select * from AIRLINE;
+
+-- 1. The list of all airlines for a given airport. ---
+select AIRLINE_NAME, AIRPORT_NAME
+from AIRPORT_AIRLINE
+natural join AIRLINE
+where AIRPORT_NAME = 'Los Angeles International Airport';
+-- 2. the list of all flights for a given airline. You must be able to sort this list by starting location, destination, longest flight or shortest flight. ---
+select AIRLINE_NAME, ARRIVAL_AIRPORT, DEPARTURE_AIRPORT, FLIGHT_CREW_NAME,
+FLIGHT_DATE, FLIGHT_DEPARTURE_TIME, FINAL_ARRIVAL_TIME from FLIGHT inner join FLIGHT_SCHEDULE
+on FLIGHT.FSID = FLIGHT_SCHEDULE.FSID
+inner join AIRPORT_AIRLINE
+on DEPARTURE_AIRPORT = AIRPORT_AIRLINE.AIRPORT_NAME
+inner join AIRLINE on
+AIRPORT_AIRLINE.AID = AIRLINE.AID
+where AIRLINE_NAME = 'Gamma_Airlines'
+order by DEPARTURE_AIRPORT;
+
+select AIRLINE_NAME, ARRIVAL_AIRPORT, DEPARTURE_AIRPORT, FLIGHT_CREW_NAME,
+FLIGHT_DATE, FLIGHT_DEPARTURE_TIME, FINAL_ARRIVAL_TIME from FLIGHT inner join FLIGHT_SCHEDULE
+on FLIGHT.FSID = FLIGHT_SCHEDULE.FSID
+inner join AIRPORT_AIRLINE
+on DEPARTURE_AIRPORT = AIRPORT_AIRLINE.AIRPORT_NAME
+inner join AIRLINE on
+AIRPORT_AIRLINE.AID = AIRLINE.AID
+where AIRLINE_NAME = 'Gamma_Airlines'
+order by ARRIVAL_AIRPORT;
+
+select AIRLINE_NAME, ARRIVAL_AIRPORT, DEPARTURE_AIRPORT, FLIGHT_CREW_NAME,
+FLIGHT_DATE, FLIGHT_DEPARTURE_TIME, FINAL_ARRIVAL_TIME from FLIGHT inner join FLIGHT_SCHEDULE
+on FLIGHT.FSID = FLIGHT_SCHEDULE.FSID
+inner join AIRPORT_AIRLINE
+on DEPARTURE_AIRPORT = AIRPORT_AIRLINE.AIRPORT_NAME
+inner join AIRLINE on
+AIRPORT_AIRLINE.AID = AIRLINE.AID
+where AIRLINE_NAME = 'Gamma_Airlines'
+order by {fn TIMESTAMPDIFF(SQL_TSI_MINUTE, FLIGHT.FLIGHT_DEPARTURE_TIME, Flight.FINAL_ARRIVAL_TIME)};
+
+select AIRLINE_NAME, ARRIVAL_AIRPORT, DEPARTURE_AIRPORT, FLIGHT_CREW_NAME,
+FLIGHT_DATE, FLIGHT_DEPARTURE_TIME, FINAL_ARRIVAL_TIME from FLIGHT inner join FLIGHT_SCHEDULE
+on FLIGHT.FSID = FLIGHT_SCHEDULE.FSID
+inner join AIRPORT_AIRLINE
+on DEPARTURE_AIRPORT = AIRPORT_AIRLINE.AIRPORT_NAME
+inner join AIRLINE on
+AIRPORT_AIRLINE.AID = AIRLINE.AID
+where AIRLINE_NAME = 'Gamma_Airlines'
+order by {fn TIMESTAMPDIFF(SQL_TSI_MINUTE, FLIGHT.FLIGHT_DEPARTURE_TIME, Flight.FINAL_ARRIVAL_TIME)} desc;
+
+-- Arriving flights per city
+select CITY_NAME, count(*) as arrival_flights from FLIGHT_SCHEDULE
+inner join AIRPORT on 
+FLIGHT_SCHEDULE.ARRIVAL_AIRPORT = AIRPORT.AIRPORT_NAME
+inner join CITY on 
+CITY.CID = AIRPORT.CID
+group by CITY_NAME
+order by arrival_flights desc;
+-- Departing flights per city
+select CITY_NAME, count(*) as departure_flights from FLIGHT_SCHEDULE
+inner join AIRPORT on 
+FLIGHT_SCHEDULE.DEPARTURE_AIRPORT = AIRPORT.AIRPORT_NAME
+inner join CITY on 
+CITY.CID = AIRPORT.CID
+group by CITY_NAME
+order by departure_flights desc;
+-- list of airlines in each service category
+select AIRLINE_NAME, FLIGHT_TYPE
+from AIRLINE order by FLIGHT_TYPE;
+--Crew that fly multiple flights in a single day
+SELECT FLIGHT_CREW_NAME, FLIGHT_DATE, count(FLIGHT_DATE) as number_of_flights
+from FLIGHT
+group by FLIGHT_CREW_NAME, FLIGHT_DATE
+having count(FLIGHT_DATE) > 1;
+/** The trips that are avaiable if you do make one stop over */
+
+/** A list of all incident reports by flight */
+select FLIGHT_DATE, INCIDENT_TYPE, SEVERITY_AMOUNT, ARRIVAL_AIRPORT, DEPARTURE_AIRPORT from FLIGHT
+inner join INCIDENT_REPORT on
+FLIGHT.FSID = INCIDENT_REPORT.FSID
+inner join FLIGHT_SCHEDULE on 
+FLIGHT.FSID = FLIGHT_SCHEDULE.FSID;
+/** Flights that are scheduled to depart in three days */
+SELECT FLIGHT_DATE, FLIGHT_CREW_NAME, FLIGHT_DEPARTURE_TIME, FINAL_ARRIVAL_TIME, ARRIVAL_AIRPORT, DEPARTURE_AIRPORT
+from FLIGHT
+inner join FLIGHT_SCHEDULE
+on FLIGHT.FSID = FLIGHT_SCHEDULE.FSID
+WHERE {fn TIMESTAMPDIFF(SQL_TSI_DAY, CURRENT_DATE, FLIGHT.FLIGHT_DATE)} = 3;
+/** Flights that departed more than 30 minutes late */
+select FLIGHT_DATE, FLIGHT_CREW_NAME, FLIGHT.FLIGHT_DEPARTURE_TIME, FLIGHT.FINAL_ARRIVAL_TIME, 
+FLIGHT_SCHEDULE.ARRIVAL_TIME, FLIGHT_SCHEDULE.DEPARTURE_TIME, ARRIVAL_AIRPORT, DEPARTURE_AIRPORT
+ from FLIGHT 
+inner join FLIGHT_SCHEDULE
+on FLIGHT.FSID = FLIGHT_SCHEDULE.FSID
+where {fn TIMESTAMPDIFF(SQL_TSI_MINUTE, FLIGHT_SCHEDULE.DEPARTURE_TIME, FLIGHT.FLIGHT_DEPARTURE_TIME)} > 30;
+/** List all planes that are retired >= 30 year of life  */
+SELECT * FROM AIRPLANE where -{fn TIMESTAMPDIFF(SQL_TSI_YEAR, CURRENT_DATE, AIRPLANE.DATE_MANUFACTURED)} > 30;
+
+/* Flights that charge for extras */
+select FLIGHT_DEPARTURE_TIME, FINAL_ARRIVAL_TIME, FLIGHT_CREW_NAME, FLIGHT_DATE, ARRIVAL_AIRPORT, DEPARTURE_AIRPORT from FLIGHT
+inner join FLIGHT_SCHEDULE on
+FLIGHT.FSID = FLIGHT_SCHEDULE.FSID
+inner join CHARGED_FLIGHT on
+FLIGHT_SCHEDULE.FSID = CHARGED_FLIGHT.FSID;
+-- List all pilots doing international flights to ensure that they have over 10000 hours of experience
+select FIRST_NAME, LAST_NAME, EMAIL, HOUROFEXPERIENCE from CREW_MEMBER
+inner join PILOT on 
+CREW_MEMBER.CMID = PILOT.CMID
+inner join FLIGHT_CREW on
+PILOT.FLIGHT_CREW_NAME = FLIGHT_CREW.FLIGHT_CREW_NAME
+inner join FLIGHT on 
+FLIGHT_CREW.FLIGHT_CREW_NAME  = FLIGHT.FLIGHT_CREW_NAME
+inner join FLIGHT_SCHEDULE on 
+FLIGHT.FSID = FLIGHT_SCHEDULE.FSID
+inner join INTERNATIONAL_FLIGHT
+on INTERNATIONAL_FLIGHT.FSID
+ = FLIGHT_SCHEDULE.FSID;
+
+
+INSERT INTO FLIGHT_SCHEDULE(FSID, ARRIVAL_TIME, DEPARTURE_TIME, ARRIVAL_AIRPORT, DEPARTURE_AIRPORT, FLIGHT_NUMBER)
+VALUES (100003, '14:00', '10:00', 'Los Angeles International Airport', 'Tokyo Haneda Airport', '1002');
+
+INSERT INTO FLIGHT(FINAL_ARRIVAL_TIME, FLIGHT_DEPARTURE_TIME, FLIGHT_CREW_NAME, FSID, TAIL_NUMBER, FLIGHT_DATE)
+VALUES ('14:31', '10:31', 'International Flyers', 100003, '10001', '05/1/2020');
+
+INSERT INTO FLIGHT_SCHEDULE(FSID, ARRIVAL_TIME, DEPARTURE_TIME, ARRIVAL_AIRPORT, DEPARTURE_AIRPORT, FLIGHT_NUMBER)
+VALUES (100004, '14:00', '10:00', 'Tokyo Haneda Airport', 'Los Angeles International Airport', '1003');
+
+INSERT INTO FLIGHT(FINAL_ARRIVAL_TIME, FLIGHT_DEPARTURE_TIME, FLIGHT_CREW_NAME, FSID, TAIL_NUMBER, FLIGHT_DATE)
+VALUES ('15:00', '11:31', 'International Flyers', 100004, '10001', '05/4/2020');
+
+select * from AIRLINE where AIRLINE_NAME like 'H%';
+
+INSERT INTO FLIGHT_CREW(FLIGHT_CREW_NAME) VALUES ('Hollywood_flyers');
+
+INSERT INTO CREW_MEMBER(FIRST_NAME, LAST_NAME, EMAIL, AID, DOB, FAA_NUMBER, CMID)
+VALUES ('Kevin', 'Bacon', 'bacon@bacon.com', 100,'08/08/1958', '1005', 1005)
+       ,('Angelina', 'Jolie', 'jolie@jolie.com', 100, '06/04/1975', '1006', 1006),
+        ('Brad', 'Pitt', 'pitt@pitt.com', 100, '12/18/1963', '1007', 1007),
+        ('Jennifer', 'Aniston', 'aniston@aniston.com', 100, '02/11/1969', '1008', 1008),
+        ('Andrew', 'Ng', 'andrew@cmu.com', 100, '08/23/1976', '1009', 1009),
+        ('Tim', 'Roughgarden', 'tim@stanford.com', 100, '07/20/1975', '1010', 1010);
+        
+
+INSERT INTO PILOT(CMID, HOUROFEXPERIENCE, FLIGHT_CREW_NAME)
+VALUES (1005, 1000, 'Hollywood_flyers');
+
+INSERT INTO CO_PILOT(CMID, FLIGHT_CREW_NAME)
+VALUES (1006, 'Hollywood_flyers');
+
+INSERT INTO NAVIGATOR(CMID, FLIGHT_CREW_NAME)
+VALUES (1007, 'Hollywood_flyers');
+
+INSERT INTO FLIGHT_ATTENDANT(CMID, FLIGHT_CREW_NAME)
+VALUES (1008, 'Hollywood_flyers'),
+       (1009, 'Hollywood_flyers'),
+       (1010, 'Hollywood_flyers');
+
+INSERT INTO AIRPLANE(MANUFACTURER,MODEL_NUMBER,PASSENGER_MAXIMUM,TAIL_NUMBER,PLANE_NAME,DATE_MANUFACTURED,AID)
+VALUES('AMC MRO', 444, 42, '10002', 'Celeb_flyers', '07/07/1997', 100);
+
+insert into FLIGHT(FSID, FLIGHT_CREW_NAME,FINAL_ARRIVAL_TIME,FLIGHT_DEPARTURE_TIME,TAIL_NUMBER,FLIGHT_DATE)
+VALUES (1003, 'Hollywood_flyers', '14:00', '13:00', '10002', '05/1/2020');
+
+INSERT INTO
+CHARGED_FLIGHT(FSID) 
+VALUES(1003);
+
+INSERT into 
+CHARGE(FSID, CHARGE_TYPE, CHARGE_AMOUNT)
+VALUES (1003, 'Water', '2.50'),
+       (1003, 'Blankets', '3.50'),
+       (1003, 'Pillows', '5.50');
+
+
+
+select ARRIVAL_AIRPORT, count(*) as number_of_arrivals
+from FLIGHT_SCHEDULE 
+group by ARRIVAL_AIRPORT
+order by number_of_arrivals desc;
+
