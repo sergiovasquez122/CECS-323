@@ -1,0 +1,87 @@
+select distinct CUSTOMERNAME from customers
+except 
+select distinct tmp1.customername from 
+(select * from CUSTOMERS natural join PAYMENTS) as tmp1, 
+(select * from CUSTOMERS natural join PAYMENTS) as tmp2
+where tmp1.customernumber != tmp2.customernumber and tmp1.paymentdate = tmp2.paymentdate;
+
+SELECT tmp1.customername, tmp2.customername from
+(select * from CUSTOMERS natural join PAYMENTS) as tmp1, 
+(select * from CUSTOMERS natural join PAYMENTS) as tmp2
+where tmp1.customernumber != tmp2.customernumber and tmp1.paymentdate = tmp2.paymentdate;
+
+-- Find customers who have ordered the same thing. Find only those customer pairs that have ordered teh same thing as each other at least 201 times.
+select first_customer, second_customer from (select tmp1.customername as first_customer, tmp2.customername as second_customer, count(*) as number_of_products from (select * from customers natural join ORDERS natural join ORDERDETAILS natural join PRODUCTS) as tmp1,
+                                                  (select * from customers natural join orders natural join orderdetails natural join products) as tmp2
+where tmp1.productcode = tmp2.productcode and tmp1.customernumber < tmp2.customernumber
+group by tmp1.customername, tmp2.customername
+having count(*) >= 211)
+as tmp3;
+-- What is the manager who manages the greatest number of employees
+SELECT tmp1.firstname, tmp1.lastname from (select manager.firstname, manager.lastname, count(*) as number_of_employees from EMPLOYEES manager, EMPLOYEES employee
+where employee.REPORTSTO = manager.EMPLOYEENUMBER
+group by manager.firstname, manager.lastname) as tmp1
+inner join 
+(select max(number_of_employees) as max_value from (SELECT manager.firstname, manager.lastname, count(*) as number_of_employees from EMPLOYEES manager, EMPLOYEES employee
+where employee.REPORTSTO = manager.EMPLOYEENUMBER
+group by manager.firstname, manager.lastname) as tmp2) as tmp3
+on
+tmp1.number_of_employees = tmp3.max_value;
+
+-- 18. Select all employees who work for the manager that manages the greatest number of employee (12) 
+SELECT EMPLOYEES.FIRSTNAME, EMPLOYEES.LASTNAME, EMPLOYEES.EMPLOYEENUMBER from EMPLOYEES inner join (
+SELECT tmp1.firstname, tmp1.lastname, tmp1.employeenumber from (select manager.firstname, manager.lastname, manager.EMPLOYEENUMBER, count(*) as number_of_employees from EMPLOYEES manager, EMPLOYEES employee
+where employee.REPORTSTO = manager.EMPLOYEENUMBER
+group by manager.firstname, manager.lastname, manager.EMPLOYEENUMBER) as tmp1
+inner join 
+(select max(number_of_employees) as max_value from (SELECT manager.firstname, manager.lastname, count(*) as number_of_employees from EMPLOYEES manager, EMPLOYEES employee
+where employee.REPORTSTO = manager.EMPLOYEENUMBER
+group by manager.firstname, manager.lastname) as tmp2) as tmp3
+on
+tmp1.number_of_employees = tmp3.max_value) as tmp4
+on EMPLOYEES.REPORTSTO = tmp4.employeenumber;
+
+-- List all employees that have the same last name. Make sure each combination appears only once
+select e1.firstname, e1.lastname, e2.firstname, e2.lastname from
+EMPLOYEES e1, EMPLOYEES e2
+where e1.EMPLOYEENUMBER < e2.EMPLOYEENUMBER and e1.LASTNAME = e2.LASTNAME;
+
+-- Select the name of each of two customers who have made at least one payment on the same date as the other. Make sure that each pair of customers only appear once.
+select  tmp1.customername as first_customer, tmp2.customername as second_customer, count(*) as number_of_orders_same_date from (SELECT * from customers natural join payments) as tmp1,
+(select * from customers natural join payments) as tmp2
+where tmp1.customernumber < tmp2.customernumber
+and tmp1.paymentdate = tmp2.paymentdate
+group by tmp1.customername, tmp2.customername;
+
+-- List the customer name of all customers who have never ordered any product 
+-- from the 'classic cars' product line
+select distinct customername from customers
+except
+select distinct customername from customers natural join orders natural join orderdetails natural join PRODUCTS
+where PRODUCTLINE = 'Classic Cars';
+-- List the customers who saher the same postal code. Make sure that no pair of customers
+-- shows up more than once. order by the first customer name, then the second.
+SELECT c1.customername as first_customer_name, c2.customername as second_customer_name from
+(select * from customers) as c1,
+(select * from customers) as c2
+where c1.customernumber < c2.customernumber 
+and c1.postalcode = c2.postalcode
+order by first_customer_name, second_customer_name;
+-- Lis the cities and states in which we have either offices of customers.
+-- identify whether the address is associated with an office or customer. do not include rows where the state is null
+SELECT city, state, 'customer' as category
+from (select state, city from customers except select state, city from offices) as tmp1
+where state is not null
+union
+select city, state, 'offices' as category
+from (select state, city from offices except select state, city from customers) as tmp2
+where state is not null;
+--list the name of all of the custoemrs who have ordered our most expensive product. order by customer name
+select distinct customername from customers natural join ORDERS
+natural join orderdetails natural join products
+where productcode = 
+(select PRODUCTCODE from PRODUCTS
+where MSRP = (select max(MSRP) from PRODUCTS));
+-- What product has the most value in our inventory (instock * MSRP)
+SELECT PRODUCTNAME from PRODUCTS
+where QUANTITYINSTOCK * MSRP >= all(SELECT QUANTITYINSTOCK * MSRP as product_values from PRODUCTS);
